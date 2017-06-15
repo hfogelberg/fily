@@ -2,6 +2,7 @@
 
 # Binary file
 fileupload
+main
 
 # Ignore all
 *
@@ -36,4 +37,4 @@ relative/path/to/dir/filename.extension
 relative/path/to/dir/anotherfile
 
 # Uploads
-public/tmp
+example/public/tmp

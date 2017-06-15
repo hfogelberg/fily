@@ -2,12 +2,11 @@ package main
 
 import (
 	"html/template"
-	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/hfogelberg/fily"
 	"github.com/urfave/negroni"
 )
 
@@ -39,26 +38,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	file, header, err := r.FormFile("file")
-
+	name, err := fily.SaveFile(r)
 	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer file.Close()
-
-	out, err := os.Create("./public/tmp/" + header.Filename)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, file)
-	if err != nil {
-		log.Println(err)
+		log.Fatalln(err)
 	}
 
-	log.Println(header.Filename)
+	log.Println("File save OK! " + name)
+
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
