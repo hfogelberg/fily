@@ -1,27 +1,29 @@
 package fily
 
 import (
-	"fmt"
+	"image"
+	"image/jpeg"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/nfnt/resize"
 )
 
-func SaveFile(r *http.Request) (string, error) {
-	var name = ""
+func New(r *http.Request, size uint) (string, error) {
+	fileName := time.Now().String() + ".jpg"
 
 	// 1. Save file to temp directory
-	file, header, err := r.FormFile("file")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
 	defer file.Close()
 
-	fmt.Printf("Type of file %T\n", file)
-
-	out, err := os.Create("./public/tmp/" + header.Filename)
+	out, err := os.Create("./public/tmp/" + fileName)
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -34,12 +36,43 @@ func SaveFile(r *http.Request) (string, error) {
 		return "", err
 	}
 
-	log.Println(header.Filename)
+	// 2. Reduce image size
+	path := "./public/tmp/" + fileName
+	fResize, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// 2. Reduce image size and remove original file
+	img, err := jpeg.Decode(fResize)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fResize.Close()
 
-	// 3. Save to Db
+	name, err := Resize(img, size)
+	if err != nil {
+		return "", err
+	}
+
+	// 3. Remove uncompressed filed
+	err = os.Remove(path)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return name, nil
+}
 
+func Resize(img image.Image, width uint) (string, error) {
+	fileOut := time.Now().String() + ".jpg"
+
+	m := resize.Resize(1000, 0, img, resize.NearestNeighbor)
+	out, err := os.Create("./public/tmp/" + fileOut)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+	jpeg.Encode(out, m, nil)
+
+	return fileOut, nil
 }

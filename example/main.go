@@ -38,7 +38,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	name, err := fily.SaveFile(r)
+	name, err := fily.New(r, 700)
 	if err != nil {
 		log.Fatalln(err)
 	}
